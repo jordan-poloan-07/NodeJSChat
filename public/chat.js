@@ -11,6 +11,7 @@ $(function() {
     socket.on('message', function(data) {
         if (data.message) {
             content.append("<div><span>" + data.username + " : </span><span>" + data.message + "</span></div>");
+            content[0].scrollTop = content[0].scrollHeight
         } else {
             console.log("There is a problem:", data);
         }

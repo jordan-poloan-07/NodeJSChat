@@ -34,4 +34,4 @@ serverSocket.sockets.on('connection', function(socket) {
     });
 });
 
-console.log("Established server in port " + port);
+console.log("Established server : " + serverAddr + " in port " + port);
