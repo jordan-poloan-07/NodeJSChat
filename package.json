@@ -1,5 +1,5 @@
 {
-    "name": "Socket.IO Express and Jade",
+    "name": "NodeJSChat",
     "version": "0.0.0",
     "description": "Real time web chat",
     "dependencies": {
