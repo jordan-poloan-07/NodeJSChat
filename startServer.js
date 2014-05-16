@@ -5,7 +5,7 @@ var PORT = args[1] || 3700; // verify if 4 digit number
 
 // server global variables
 var serverGlobals = {
-    activeUsers: 0
+    activeUsers: {}
 };
 
 // requirements
@@ -30,27 +30,49 @@ server.get("/", function(req, res) {
 var serverSocket = socketIO.listen(server.listen(PORT));
 
 serverSocket.sockets.on('connection', function(socket) {
-    // increment activeUsers 
-    serverGlobals.activeUsers += 1;
+
+    // add socket id
+    serverGlobals.activeUsers[socket.id] = 0;
+
     // emit welcome message to client
-    socket.emit('message', {
-        username: 'Server',
-        message: 'Welcome to the chat'
+    socket.emit('welcome', {
+        message: 'Welcome to NodeJSChat'
     });
+
     // callback for receiving messages from client
     socket.on('send', function(data) {
         serverSocket.sockets.emit('message', data);
     });
-    // callback client's request for active user count updates
-    socket.on('requestActiveUsersCount', function() {
-        socket.emit('activeUsers', {
+
+    // get the user info
+    socket.on('userinfo', function(info) {
+        serverGlobals.activeUsers[socket.id] = info.username;
+    });
+
+    socket.on('getActiveUsers', function() {
+        socket.emit("activeUsersList", {
             activeUsers: serverGlobals.activeUsers
         });
     });
+
+    socket.on('privateMsg', function(data) {
+        serverSocket.sockets.socket(data.socketId).emit('message', {
+            username: data.username,
+            message: data.message
+        });
+    });
+
     // in case of disconnection
     socket.on('disconnect', function() {
-        serverGlobals.activeUsers -= 1;
+        delete serverGlobals.activeUsers[socket.id];
     });
+
+    setInterval(function() {
+        socket.emit('activeUsers', {
+            activeUsers: Object.keys(serverGlobals.activeUsers).length
+        });
+    }, 1000);
+
 });
 
 console.log("Established server : " + SERVER + " in port " + PORT);
