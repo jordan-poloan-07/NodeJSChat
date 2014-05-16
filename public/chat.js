@@ -2,19 +2,24 @@ $(function() {
 
     var socket = io.connect('http://' + serverAddr + ':' + port);
 
-    var field = $("input.field");
-    var sendButton = $("input.send");
-    var content = $("div#content");
+    var userCount = $('#userCount');
+    var content = $('#content');
+    var field = $('input.field');
+    var sendButton = $('input.send');
 
     var username = promptForUsername();
 
     socket.on('message', function(data) {
         if (data.message) {
             content.append("<div><span>" + data.username + " : </span><span>" + data.message + "</span></div>");
-            content[0].scrollTop = content[0].scrollHeight
+            content[0].scrollTop = content[0].scrollHeight;
         } else {
             console.log("There is a problem:", data);
         }
+    });
+
+    socket.on('activeUsers', function(data) {
+        userCount.text("Current Active Users : " + data.activeUsers);
     });
 
     field.keypress(function(e) {
@@ -24,6 +29,10 @@ $(function() {
     });
 
     sendButton.click(sendMessage);
+
+    setInterval(function() {
+        socket.emit('requestActiveUsersCount');
+    }, 1000);
 
     function sendMessage() {
         socket.emit('send', {
